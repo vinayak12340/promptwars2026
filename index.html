@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Janadesh - The People's Mandate</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <div class="logo-container" onclick="navigate('home')">
+      <div class="logo-icon">
+        <i data-lucide="hexagon" color="#00E5FF" style="width: 36px; height: 36px; stroke-width: 1.5;"></i>
+        <div class="logo-inner"></div>
+      </div>
+      <h1 class="brand-text">Janadesh</h1>
+    </div>
+    
+    <div class="smart-search">
+      <i data-lucide="search" color="var(--text-muted)" style="width: 16px; height: 16px;"></i>
+      <input type="text" placeholder="Search FAQs, candidates..." />
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn"><i data-lucide="globe" style="width: 18px; height: 18px;"></i> English</button>
+      <button class="btn ai-btn" onclick="toggleChat()"><i data-lucide="sparkles" color="#00E5FF" style="width: 18px; height: 18px;"></i> AI Assistant</button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    
+    <!-- Home Section -->
+    <section id="view-home" class="view-section hero active">
+      <h1>Empowering Every Vote</h1>
+      <p>Discover interactive election insights, timelines, and smart civic education for a stronger democracy.</p>
+      <div class="hero-buttons">
+        <button class="btn saffron" onclick="navigate('map')"><i data-lucide="map" style="width: 18px; height: 18px;"></i> Explore Map</button>
+        <button class="btn green" onclick="navigate('learn')"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Start Learning</button>
+      </div>
+    </section>
+
+    <!-- Map Section -->
+    <section id="view-map" class="view-section padded-section hidden">
+      <div class="section-header">
+        <div>
+          <h2>State Statistics</h2>
+          <p class="text-muted">Select a state to view AI-generated demographic trends and insights.</p>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <!-- Grid -->
+        <div class="glass-panel state-grid-panel">
+          <div class="state-grid-container" id="state-grid-container">
+            <!-- State boxes will be injected here via JS -->
+          </div>
+        </div>
+
+        <!-- Selected State Details -->
+        <div class="state-details-panel">
+          <div id="state-details-content">
+            <!-- Default Placeholder -->
+            <div class="glass-panel state-placeholder">
+              <i data-lucide="map" color="var(--text-muted)" style="width: 48px; height: 48px; margin: 0 auto 15px;"></i>
+              <p>Select a state from the map to view detailed analytics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Learn Section -->
+    <section id="view-learn" class="view-section padded-section hidden">
+      <h2 style="font-size: 2rem; margin-bottom: 30px;">Learning & Quiz Zone</h2>
+      
+      <div class="learn-layout">
+        <!-- Videos -->
+        <div class="videos-section">
+          <h3>Election Process Videos</h3>
+          <div class="masonry" id="videos-container">
+            <!-- Videos will be injected here via JS -->
+          </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="quiz-section">
+          <h3>Voter Knowledge Quiz</h3>
+          <div class="glass-panel quiz-panel">
+            <div class="flex-between" style="margin-bottom: 20px;">
+              <span id="quiz-progress">Question 1/3</span>
+              <span id="quiz-score-badge">Score: 0</span>
+            </div>
+            
+            <p id="quiz-question"></p>
+            
+            <div id="quiz-options">
+              <!-- Options will be injected here via JS -->
+            </div>
+
+            <div id="quiz-explanation-container" class="hidden" style="margin-top: 20px;">
+              <p id="quiz-explanation" class="text-muted"></p>
+              <button class="btn next-btn" onclick="nextQuestion()">Next Question <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- AI Assistant Floating UI -->
+  <div class="ai-orb" onclick="toggleChat()">
+    <i data-lucide="bot" color="#fff" style="width: 28px; height: 28px;"></i>
+  </div>
+
+  <div id="ai-chat-window" class="ai-chat-window glass-panel hidden">
+    <div class="chat-header">
+      <i data-lucide="sparkles" color="var(--accent-cyan)" style="width: 20px; height: 20px;"></i>
+      <h4>Janadesh AI Assistant</h4>
+    </div>
+    
+    <div id="chat-messages" class="chat-messages">
+      <!-- Chat bubbles will be injected here -->
+    </div>
+
+    <div class="chat-input-area">
+      <div class="smart-search chat-input-wrapper">
+        <input 
+          type="text" 
+          id="chat-input"
+          placeholder="Ask a question..." 
+          onkeydown="if(event.key === 'Enter') sendChatMessage()"
+        />
+      </div>
+      <button class="btn send-btn" onclick="sendChatMessage()"><i data-lucide="send" style="width: 16px; height: 16px;"></i></button>
+      <button class="btn mic-btn"><i data-lucide="mic" color="var(--accent-saffron)" style="width: 18px; height: 18px;"></i></button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
