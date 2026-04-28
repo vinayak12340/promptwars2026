@@ -1,0 +1,6 @@
+.git
+.gitignore
+README.md
+design_system.md
+Dockerfile
+.dockerignore
