@@ -4,140 +4,390 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Janadesh - The People's Mandate</title>
+  <meta name="description" content="Janadesh - Civic education platform for Indian elections. Interactive maps, simulations, and multilingual guides.">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="blob-container">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
 
   <!-- Navigation -->
   <nav class="nav-bar">
     <div class="logo-container" onclick="navigate('home')">
-      <div class="logo-icon">
-        <i data-lucide="hexagon" color="#00E5FF" style="width: 36px; height: 36px; stroke-width: 1.5;"></i>
-        <div class="logo-inner"></div>
-      </div>
-      <h1 class="brand-text">Janadesh</h1>
+      <img src="public/logo.png" alt="Janadesh Logo" class="brand-logo" />
+      <span class="brand-name">Janadesh</span>
     </div>
     
-    <div class="smart-search">
-      <i data-lucide="search" color="var(--text-muted)" style="width: 16px; height: 16px;"></i>
-      <input type="text" placeholder="Search FAQs, candidates..." />
+    <div class="nav-links">
+      <button class="nav-link" onclick="navigate('map')"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></button>
+      <button class="nav-link" onclick="navigate('simulator')"><i data-lucide="cpu"></i> <span>Simulator</span></button>
+      <button class="nav-link" onclick="navigate('learn')"><i data-lucide="book-open"></i> <span>Learn</span></button>
+      <button class="nav-link" onclick="navigate('myths')"><i data-lucide="shield-alert"></i> <span>Myth vs Fact</span></button>
+      <button class="nav-link" onclick="navigate('builder')"><i data-lucide="sliders"></i> <span>Builder</span></button>
+      <button class="nav-link" onclick="navigate('impact')" style="color:var(--accent-cyan);"><i data-lucide="building"></i> <span>Impact City</span></button>
     </div>
 
     <div class="nav-actions">
-      <button class="btn"><i data-lucide="globe" style="width: 18px; height: 18px;"></i> English</button>
-      <button class="btn ai-btn" onclick="toggleChat()"><i data-lucide="sparkles" color="#00E5FF" style="width: 18px; height: 18px;"></i> AI Assistant</button>
+      <!-- Gamification Profile -->
+      <div class="user-profile hidden" id="user-profile">
+        <div class="xp-badge"><i data-lucide="star" color="gold" style="width: 14px;"></i> <span id="user-xp">0</span> XP</div>
+      </div>
+      
+      <!-- Language Selector -->
+      <div class="lang-selector">
+        <i data-lucide="globe" style="width: 18px; height: 18px;"></i>
+        <select id="lang-select" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="hi">हिंदी (Hindi)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="mr">मराठी (Marathi)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="ur">اردو (Urdu)</option>
+          <option value="gu">ગુજરાતી (Gujarati)</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          <option value="or">ଓଡ଼ିଆ (Odia)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+          <option value="as">অসমীয়া (Assamese)</option>
+          <option value="mai">मैथिली (Maithili)</option>
+          <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+          <option value="ks">कॉशुर (Kashmiri)</option>
+          <option value="ne">नेपाली (Nepali)</option>
+          <option value="sd">سنڌي (Sindhi)</option>
+          <option value="kok">कोंकणी (Konkani)</option>
+          <option value="doi">डोगरी (Dogri)</option>
+          <option value="mni">মৈতৈলোন্ (Manipuri)</option>
+          <option value="brx">बड़ो (Bodo)</option>
+          <option value="sa">संस्कृतम् (Sanskrit)</option>
+        </select>
+        <button class="btn-icon" onclick="toggleNarration()" id="narrate-btn" title="Toggle Narration"><i data-lucide="volume-2"></i></button>
+      </div>
     </div>
   </nav>
 
   <!-- Main Content Area -->
   <main class="main-content">
     
+    <!-- Onboarding Section (Popup) -->
+    <div id="onboarding-modal" class="modal hidden">
+      <div class="modal-content glass-panel">
+        <h2 data-i18n="onboard_title">Welcome to Janadesh</h2>
+        <p data-i18n="onboard_desc">Personalize your journey. Tell us about yourself.</p>
+        <div class="form-group">
+          <label data-i18n="onboard_role">I am a:</label>
+          <select id="user-role">
+            <option value="first-time" data-i18n="role_first">First-time Voter / Student</option>
+            <option value="regular" data-i18n="role_reg">Regular Voter</option>
+            <option value="overseas" data-i18n="role_nri">Migrant / Overseas Voter</option>
+            <option value="missed">Missed deadline (Late voter)</option>
+            <option value="family">Helping a family member</option>
+            <option value="educator" data-i18n="role_edu">Educator / Analyst</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="onboard_state">My State:</label>
+          <select id="user-state-select">
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Kerala">Kerala</option>
+            <option value="West Bengal">West Bengal</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <button class="btn green" onclick="completeOnboarding()" data-i18n="onboard_btn">Start Journey</button>
+      </div>
+    </div>
+
     <!-- Home Section -->
     <section id="view-home" class="view-section hero active">
-      <h1>Empowering Every Vote</h1>
-      <p>Discover interactive election insights, timelines, and smart civic education for a stronger democracy.</p>
+      <h1 data-i18n="hero_title">Understand Elections. Vote with Confidence.</h1>
+      <p data-i18n="hero_subtitle" style="text-align: center;">Empowering every voter, every state.</p>
+      
+      <!-- Personalized Journey Tracker (Shown after onboarding) -->
+      <div id="journey-tracker" class="glass-panel hidden journey-panel">
+        <h3 data-i18n="journey_title">Your Voter Journey Map</h3>
+        <div id="journey-map-container" class="journey-map-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
       <div class="hero-buttons">
-        <button class="btn saffron" onclick="navigate('map')"><i data-lucide="map" style="width: 18px; height: 18px;"></i> Explore Map</button>
-        <button class="btn green" onclick="navigate('learn')"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Start Learning</button>
+        <button class="btn saffron" onclick="navigate('simulator')" data-i18n="btn_sim"><i data-lucide="git-merge"></i> View Process Timeline</button>
+        <button class="btn green" onclick="navigate('map')" data-i18n="btn_dash"><i data-lucide="bar-chart-2"></i> Voter Dashboard</button>
       </div>
     </section>
 
-    <!-- Map Section -->
+    <!-- Map/Dashboard Section -->
     <section id="view-map" class="view-section padded-section hidden">
-      <div class="section-header">
+      <div class="section-header flex-between">
         <div>
-          <h2>State Statistics</h2>
-          <p class="text-muted">Select a state to view AI-generated demographic trends and insights.</p>
+          <h2 data-i18n="dash_title">Voter Data Dashboard</h2>
+          <p class="text-muted" data-i18n="dash_desc">Explore state-wise demographics and 2026 election insights.</p>
+        </div>
+        <div class="filters">
+          <label data-i18n="filter_year">Filter:</label>
+          <select id="year-filter" onchange="renderDashboard()">
+            <option value="all">All States</option>
+            <option value="2026">2026 Assembly Elections</option>
+          </select>
         </div>
       </div>
 
-      <div class="map-layout">
-        <!-- Grid -->
-        <div class="glass-panel state-grid-panel">
-          <div class="state-grid-container" id="state-grid-container">
-            <!-- State boxes will be injected here via JS -->
-          </div>
+      <div class="dashboard-layout">
+        <div class="glass-panel state-table-panel">
+          <table class="data-table" id="dashboard-table">
+            <thead>
+              <tr>
+                <th data-i18n="th_state">State</th>
+                <th data-i18n="th_total">Total Voters (Cr)</th>
+                <th data-i18n="th_male">Male %</th>
+                <th data-i18n="th_female">Female %</th>
+                <th data-i18n="th_new">New Voters (L)</th>
+                <th data-i18n="th_date">Polling Date</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-tbody">
+              <!-- JS Populated -->
+            </tbody>
+          </table>
         </div>
+      </div>
+    </section>
 
-        <!-- Selected State Details -->
-        <div class="state-details-panel">
-          <div id="state-details-content">
-            <!-- Default Placeholder -->
-            <div class="glass-panel state-placeholder">
-              <i data-lucide="map" color="var(--text-muted)" style="width: 48px; height: 48px; margin: 0 auto 15px;"></i>
-              <p>Select a state from the map to view detailed analytics.</p>
+    <!-- Simulator Section -->
+    <section id="view-simulator" class="view-section padded-section hidden">
+      <h2 data-i18n="sim_title">Interactive Process Simulator</h2>
+      <p class="text-muted" data-i18n="sim_desc">Follow the timeline of an Indian election.</p>
+      
+      <div class="timeline-container">
+        <div class="timeline-step" onclick="showSimulatorDetail('announcement')">
+          <div class="step-icon"><i data-lucide="megaphone"></i></div>
+          <div class="step-text" data-i18n="step_1">ECI Announcement</div>
+        </div>
+        <div class="timeline-line"></div>
+        <div class="timeline-step" onclick="showSimulatorDetail('nominations')">
+          <div class="step-icon"><i data-lucide="file-text"></i></div>
+          <div class="step-text" data-i18n="step_2">Nominations</div>
+        </div>
+        <div class="timeline-line"></div>
+        <div class="timeline-step" onclick="showSimulatorDetail('campaign')">
+          <div class="step-icon"><i data-lucide="users"></i></div>
+          <div class="step-text" data-i18n="step_3">Campaigns</div>
+        </div>
+        <div class="timeline-line"></div>
+        <div class="timeline-step active-step" onclick="showSimulatorDetail('polling')">
+          <div class="step-icon pulse"><i data-lucide="box"></i></div>
+          <div class="step-text" data-i18n="step_4">EVM Polling</div>
+        </div>
+        <div class="timeline-line"></div>
+        <div class="timeline-step" onclick="showSimulatorDetail('counting')">
+          <div class="step-icon"><i data-lucide="bar-chart"></i></div>
+          <div class="step-text" data-i18n="step_5">Results</div>
+        </div>
+      </div>
+
+      <div class="glass-panel simulator-detail" id="simulator-detail-panel">
+        <!-- EVM Interactive Mockup (Default view for Polling) -->
+        <h3 data-i18n="evm_title">EVM Mockup (AR Preview)</h3>
+        <div class="evm-ar-container">
+          <div class="evm-machine">
+            <div class="evm-candidate" draggable="true" ondragstart="dragCandidate(event)" data-id="1">
+              <span>Candidate A</span> <button class="evm-btn"></button>
+            </div>
+            <div class="evm-candidate" draggable="true" ondragstart="dragCandidate(event)" data-id="2">
+              <span>Candidate B</span> <button class="evm-btn"></button>
+            </div>
+            <div class="evm-candidate" draggable="true" ondragstart="dragCandidate(event)" data-id="3">
+              <span>NOTA</span> <button class="evm-btn nota"></button>
             </div>
           </div>
+          <div class="ballot-dropzone" ondrop="dropVote(event)" ondragover="allowDrop(event)">
+            <p data-i18n="evm_drag" id="evm-drag-text">Drag a candidate here to cast mock vote</p>
+            <i data-lucide="inbox" style="width:48px;height:48px;opacity:0.5;"></i>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Learn Section -->
+    <!-- Democracy Builder Section -->
+    <section id="view-builder" class="view-section padded-section hidden">
+      <h2 data-i18n="build_title">Democracy Builder</h2>
+      <p class="text-muted" data-i18n="build_desc">Create a mock constituency and simulate outcomes.</p>
+      
+      <div class="builder-layout glass-panel">
+        <div class="builder-controls">
+          <div class="slider-group">
+            <label>Youth Turnout: <span id="val-youth">60</span>%</label>
+            <input type="range" id="slide-youth" min="10" max="100" value="60" oninput="updateBuilder()">
+          </div>
+          <div class="slider-group">
+            <label>Female Turnout: <span id="val-female">65</span>%</label>
+            <input type="range" id="slide-female" min="10" max="100" value="65" oninput="updateBuilder()">
+          </div>
+          <div class="slider-group">
+            <label>Rural Voters: <span id="val-rural">70</span>%</label>
+            <input type="range" id="slide-rural" min="0" max="100" value="70" oninput="updateBuilder()">
+          </div>
+        </div>
+        <div class="builder-results">
+          <h3>Simulation Result</h3>
+          <div class="result-chart">
+            <div class="bar party-a" id="bar-a" style="height: 45%;">Party A (45%)</div>
+            <div class="bar party-b" id="bar-b" style="height: 55%;">Party B (55%)</div>
+          </div>
+          <p id="builder-insight" class="text-muted mt-3">High female turnout favors Party B in this model.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gamified Learning Section -->
     <section id="view-learn" class="view-section padded-section hidden">
-      <h2 style="font-size: 2rem; margin-bottom: 30px;">Learning & Quiz Zone</h2>
+      <h2 data-i18n="quest_title">Vote Quest</h2>
+      <p class="text-muted" data-i18n="quest_desc">Test your knowledge and earn passport stamps.</p>
+
+      <!-- Video Library -->
+      <div class="video-library" style="margin-top: 30px; margin-bottom: 30px;">
+        <h3 style="color:var(--accent-cyan); margin-bottom: 15px;"><i data-lucide="youtube" style="width:20px;height:20px;margin-bottom:-4px;"></i> Educational Videos</h3>
+        <div class="video-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <div class="video-card glass-panel" style="padding:15px; border-radius:12px;">
+            <iframe width="100%" height="200" src="https://www.youtube.com/embed/S2oW02y2_K8" title="How to Vote using EVM and VVPAT" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:8px;"></iframe>
+            <h4 style="margin-top: 10px; font-size: 1rem;">How to Vote using EVM-VVPAT</h4>
+            <p class="text-muted" style="font-size: 0.85rem;">Official ECI Guide</p>
+          </div>
+          <div class="video-card glass-panel" style="padding:15px; border-radius:12px;">
+            <iframe width="100%" height="200" src="https://www.youtube.com/embed/p1nB7k4h1XU" title="Election Process in India" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:8px;"></iframe>
+            <h4 style="margin-top: 10px; font-size: 1rem;">The Election Process in India</h4>
+            <p class="text-muted" style="font-size: 0.85rem;">Understanding Democracy</p>
+          </div>
+        </div>
+      </div>
       
       <div class="learn-layout">
-        <!-- Videos -->
-        <div class="videos-section">
-          <h3>Election Process Videos</h3>
-          <div class="masonry" id="videos-container">
-            <!-- Videos will be injected here via JS -->
+        <!-- Badges Area -->
+        <div class="badges-section glass-panel">
+          <h3 data-i18n="badges_title">Digital Passport</h3>
+          <div class="badge-grid" id="badge-container">
+            <div class="badge locked" id="badge-1"><i data-lucide="lock"></i> <span data-i18n="badge_1">Novice</span></div>
+            <div class="badge locked" id="badge-2"><i data-lucide="lock"></i> <span data-i18n="badge_2">Informed</span></div>
+            <div class="badge locked" id="badge-3"><i data-lucide="lock"></i> <span data-i18n="badge_3">Expert</span></div>
           </div>
         </div>
 
-        <!-- Quiz -->
-        <div class="quiz-section">
-          <h3>Voter Knowledge Quiz</h3>
-          <div class="glass-panel quiz-panel">
-            <div class="flex-between" style="margin-bottom: 20px;">
-              <span id="quiz-progress">Question 1/3</span>
-              <span id="quiz-score-badge">Score: 0</span>
-            </div>
-            
-            <p id="quiz-question"></p>
-            
-            <div id="quiz-options">
-              <!-- Options will be injected here via JS -->
-            </div>
-
-            <div id="quiz-explanation-container" class="hidden" style="margin-top: 20px;">
-              <p id="quiz-explanation" class="text-muted"></p>
-              <button class="btn next-btn" onclick="nextQuestion()">Next Question <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i></button>
-            </div>
+        <!-- Quiz Area -->
+        <div class="quiz-section glass-panel quiz-panel">
+          <div class="flex-between" style="margin-bottom: 20px;">
+            <span id="quiz-progress">Question 1/3</span>
+            <span id="quiz-score-badge" class="badge-pill">Score: 0</span>
+          </div>
+          <p id="quiz-question"></p>
+          <div id="quiz-options"></div>
+          <div id="quiz-explanation-container" class="hidden mt-3">
+            <p id="quiz-explanation" class="text-muted"></p>
+            <button class="btn next-btn" onclick="nextQuestion()">Next <i data-lucide="arrow-right"></i></button>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Explainer Modal for Journey -->
+    <div id="journey-modal" class="modal hidden">
+      <div class="modal-content glass-panel" style="max-width: 500px; text-align: left;">
+        <div class="modal-icon" id="journey-modal-icon" style="margin-bottom: 15px; display: flex; justify-content: center;"></div>
+        <h2 id="journey-modal-title" style="text-align: center; color: var(--accent-cyan);">Milestone Title</h2>
+        
+        <div style="margin-top: 20px; max-height: 50vh; overflow-y: auto; padding-right: 10px;">
+          <div class="journey-detail-section">
+            <h4 style="color:var(--accent-white);"><i data-lucide="info" style="width:14px; margin-right:5px;"></i> Plain-English Explanation</h4>
+            <p id="journey-modal-desc" class="text-muted" style="margin-top: 5px; font-size: 0.95rem;"></p>
+          </div>
+          
+          <div class="journey-detail-section" style="margin-top: 15px;">
+            <h4 style="color:var(--accent-saffron);"><i data-lucide="check-circle" style="width:14px; margin-right:5px;"></i> Actions Required</h4>
+            <p id="journey-modal-actions" class="text-muted" style="margin-top: 5px; font-size: 0.95rem;"></p>
+          </div>
+
+          <div class="journey-detail-section" style="margin-top: 15px;">
+            <h4 style="color:#ff4444;"><i data-lucide="alert-triangle" style="width:14px; margin-right:5px;"></i> Mistakes to Avoid</h4>
+            <p id="journey-modal-mistakes" class="text-muted" style="margin-top: 5px; font-size: 0.95rem;"></p>
+          </div>
+
+          <div class="journey-detail-section" style="margin-top: 15px; background: rgba(0,229,255,0.1); padding: 10px; border-radius: 8px;">
+            <h4 style="color:var(--accent-cyan);"><i data-lucide="clock" style="width:14px; margin-right:5px;"></i> Deadline</h4>
+            <p id="journey-modal-deadline" style="margin-top: 5px; font-weight: bold;"></p>
+          </div>
+
+          <div class="journey-detail-section" style="margin-top: 15px;">
+            <h4 style="color:var(--accent-green);"><i data-lucide="external-link" style="width:14px; margin-right:5px;"></i> Learn More</h4>
+            <a id="journey-modal-link" href="#" target="_blank" style="color: var(--accent-green); font-size: 0.9rem; margin-top: 5px; display: inline-block;">Official ECI Reference Placeholder</a>
+          </div>
+        </div>
+
+        <div id="journey-modal-action" style="margin-top: 20px; text-align: center;"></div>
+        <button class="btn" onclick="closeJourneyModal()" style="margin-top: 15px; width: 100%;">Close</button>
+      </div>
+    </div>
+
+    <!-- Voter Impact City Section -->
+    <section id="view-impact" class="view-section padded-section hidden">
+      <div class="flex-between">
+        <div>
+          <h2 style="color:var(--accent-cyan);">Voter Impact City</h2>
+          <p class="text-muted">Your democratic actions build the future. Level up to see your city grow.</p>
+        </div>
+        <div class="impact-level-badge">
+          City Level: <span id="city-level" style="color:var(--accent-white);font-weight:bold;">1</span>
+        </div>
+      </div>
+      
+      <div class="impact-city-container">
+        <div class="isometric-grid" id="isometric-grid">
+          <!-- 3D Buildings will be injected here via JS -->
+          <div class="grid-base"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Myth vs Fact Section -->
+    <section id="view-myths" class="view-section padded-section hidden">
+      <h2 style="color:var(--accent-saffron); text-align:center; margin-bottom: 30px;">Myth vs Fact Mode</h2>
+      <div class="myths-grid" id="myths-grid">
+        <!-- Injected via JS -->
+      </div>
+      <h2 style="color:var(--accent-cyan); text-align:center; margin-top: 50px; margin-bottom: 20px;">Frequently Asked Questions</h2>
+      <div class="faq-container" id="faq-container">
+        <!-- Injected via JS -->
       </div>
     </section>
 
   </main>
 
+  <!-- Push Notification System (Toast) -->
+  <div id="notification-container" class="notification-container"></div>
+
   <!-- AI Assistant Floating UI -->
-  <div class="ai-orb" onclick="toggleChat()">
+  <div id="ai-orb" class="ai-orb hidden" onclick="toggleChat()">
     <i data-lucide="bot" color="#fff" style="width: 28px; height: 28px;"></i>
   </div>
 
-  <div id="ai-chat-window" class="ai-chat-window glass-panel hidden">
+  <!-- Persistent AI Assistant -->
+  <div id="ai-chat-window" class="ai-chat-window glass-panel">
     <div class="chat-header">
       <i data-lucide="sparkles" color="var(--accent-cyan)" style="width: 20px; height: 20px;"></i>
-      <h4>Janadesh AI Assistant</h4>
+      <h4>Janadesh AI Guide</h4>
+      <button class="btn-icon" onclick="toggleChat()" style="margin-left:auto"><i data-lucide="x" style="width:16px;"></i></button>
     </div>
-    
     <div id="chat-messages" class="chat-messages">
-      <!-- Chat bubbles will be injected here -->
+      <div class="chat-bubble ai-bubble">Hello! I am your Electoral Guide. Let's make democracy easy. First, tell me: which voter profile are you? (e.g., First-time, Migrant, Senior Citizen)</div>
     </div>
-
     <div class="chat-input-area">
-      <div class="smart-search chat-input-wrapper">
-        <input 
-          type="text" 
-          id="chat-input"
-          placeholder="Ask a question..." 
-          onkeydown="if(event.key === 'Enter') sendChatMessage()"
-        />
-      </div>
+      <input type="text" id="chat-input" placeholder="Ask about elections..." onkeydown="if(event.key === 'Enter') sendChatMessage()"/>
       <button class="btn send-btn" onclick="sendChatMessage()"><i data-lucide="send" style="width: 16px; height: 16px;"></i></button>
-      <button class="btn mic-btn"><i data-lucide="mic" color="var(--accent-saffron)" style="width: 18px; height: 18px;"></i></button>
     </div>
   </div>
 
