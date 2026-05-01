@@ -9,6 +9,16 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <!-- Firebase Authentication -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- Google Maps API -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB17IJZR5BW-H8fZqbzvEK_u2H-8otzCAU&callback=initMap"></script>
 </head>
 <body>
   <div class="blob-container">
@@ -16,6 +26,10 @@
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
   </div>
+
+  <button id="sidebar-toggle" onclick="toggleSidebar()" style="position: fixed; top: 15px; left: 15px; z-index: 1000; background: var(--bg-panel); border: 1px solid var(--glass-border); padding: 8px; border-radius: 8px; color: white; cursor: pointer; backdrop-filter: blur(10px); display: none;">
+    <i data-lucide="menu"></i>
+  </button>
 
   <!-- Navigation -->
   <nav class="nav-bar">
@@ -30,6 +44,7 @@
       <button class="nav-link" onclick="navigate('learn')"><i data-lucide="book-open"></i> <span>Learn</span></button>
       <button class="nav-link" onclick="navigate('myths')"><i data-lucide="shield-alert"></i> <span>Myth vs Fact</span></button>
       <button class="nav-link" onclick="navigate('builder')"><i data-lucide="sliders"></i> <span>Builder</span></button>
+      <button class="nav-link" onclick="navigate('booth')"><i data-lucide="map-pin"></i> <span>Find Booth</span></button>
       <button class="nav-link" onclick="navigate('impact')" style="color:var(--accent-cyan);"><i data-lucide="building"></i> <span>Impact City</span></button>
     </div>
 
@@ -37,6 +52,13 @@
       <!-- Gamification Profile -->
       <div class="user-profile hidden" id="user-profile">
         <div class="xp-badge"><i data-lucide="star" color="gold" style="width: 14px;"></i> <span id="user-xp">0</span> XP</div>
+      </div>
+
+      <!-- Google Sign In -->
+      <button id="google-login-btn" class="btn green" style="padding: 5px 10px; font-size: 0.9rem; border-radius: 6px;" onclick="signInWithGoogle()"><i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Login</button>
+      <div id="user-logged-in-profile" class="hidden" style="display: flex; align-items: center; gap: 8px;">
+        <img id="user-avatar" src="" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent-cyan);" />
+        <button class="btn-icon" onclick="signOutUser()" title="Sign Out"><i data-lucide="log-out"></i></button>
       </div>
       
       <!-- Language Selector -->
@@ -68,6 +90,10 @@
           <option value="sa">संस्कृतम् (Sanskrit)</option>
         </select>
         <button class="btn-icon" onclick="toggleNarration()" id="narrate-btn" title="Toggle Narration"><i data-lucide="volume-2"></i></button>
+      <!-- Testing UI -->
+      <div class="test-controls" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; width: 100%; display: flex; gap: 10px;">
+        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex: 1;" onclick="runUnitTests()"><i data-lucide="check-circle" style="width:14px; margin-right:5px;"></i>Unit Tests</button>
+        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex: 1;" onclick="runUITests()"><i data-lucide="mouse-pointer-click" style="width:14px; margin-right:5px;"></i>UI Tests</button>
       </div>
     </div>
   </nav>
@@ -80,27 +106,39 @@
       <div class="modal-content glass-panel">
         <h2 data-i18n="onboard_title">Welcome to Janadesh</h2>
         <p data-i18n="onboard_desc">Personalize your journey. Tell us about yourself.</p>
-        <div class="form-group">
-          <label data-i18n="onboard_role">I am a:</label>
-          <select id="user-role">
-            <option value="first-time" data-i18n="role_first">First-time Voter / Student</option>
-            <option value="regular" data-i18n="role_reg">Regular Voter</option>
-            <option value="overseas" data-i18n="role_nri">Migrant / Overseas Voter</option>
-            <option value="missed">Missed deadline (Late voter)</option>
-            <option value="family">Helping a family member</option>
-            <option value="educator" data-i18n="role_edu">Educator / Analyst</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label data-i18n="onboard_state">My State:</label>
-          <select id="user-state-select">
-            <option value="Tamil Nadu">Tamil Nadu</option>
-            <option value="Kerala">Kerala</option>
-            <option value="West Bengal">West Bengal</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <button class="btn green" onclick="completeOnboarding()" data-i18n="onboard_btn">Start Journey</button>
+        <form id="onboarding-form" onsubmit="completeOnboarding(event)">
+          <div class="form-group">
+            <label data-i18n="onboard_role">I am a:</label>
+            <select id="user-role" required>
+              <option value="" disabled selected>Select your profile</option>
+              <option value="first-time" data-i18n="role_first">First-time Voter / Student</option>
+              <option value="regular" data-i18n="role_reg">Regular Voter</option>
+              <option value="overseas" data-i18n="role_nri">Migrant / Overseas Voter</option>
+              <option value="missed">Missed deadline (Late voter)</option>
+              <option value="family">Helping a family member</option>
+              <option value="educator" data-i18n="role_edu">Educator / Analyst</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="onboard_state">My State:</label>
+            <select id="user-state-select" required>
+              <option value="" disabled selected>Select your state</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Kerala">Kerala</option>
+              <option value="West Bengal">West Bengal</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <!-- Adding Functional Form Validation Fields as requested -->
+          <div class="form-group functional-test-group" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border); border-radius: 8px;">
+            <label style="color:var(--accent-saffron); font-size:0.85rem;"><i data-lucide="check-square" style="width:14px;"></i> Form Validation Test</label>
+            <input type="email" id="test-email" placeholder="Enter valid email (test)" required class="form-input" style="width:100%; margin-top:5px;" />
+            <input type="tel" id="test-phone" pattern="[0-9]{10}" placeholder="10-digit Phone" required class="form-input" style="width:100%; margin-top:10px;" title="Please enter a 10 digit number" />
+          </div>
+
+          <button type="submit" class="btn green" data-i18n="onboard_btn" style="width: 100%; justify-content: center; margin-top: 15px;">Start Journey</button>
+        </form>
       </div>
     </div>
 
@@ -157,6 +195,56 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- Find My Polling Booth Section -->
+    <section id="view-booth" class="view-section padded-section hidden">
+      <div class="section-header flex-between">
+        <div>
+          <h2 style="color:var(--accent-cyan);">Find My Polling Booth</h2>
+          <p class="text-muted">Locate your nearest voting center and get directions.</p>
+        </div>
+      </div>
+
+      <div class="booth-layout glass-panel" style="display: flex; gap: 30px; flex-wrap: wrap;">
+        
+        <div class="booth-controls" style="flex: 1; min-width: 300px;">
+          <div class="form-group">
+            <label>Current Location / Address:</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="booth-address" class="form-input" placeholder="Enter your pincode or address" style="flex:1;" />
+              <button class="btn-icon" onclick="getUserLocation()" style="background: rgba(0, 229, 255, 0.1); border-radius: 8px; padding: 0 10px;" title="Use GPS"><i data-lucide="crosshair" color="var(--accent-cyan)"></i></button>
+            </div>
+          </div>
+          
+          <button class="btn saffron" onclick="findBooth()" style="width: 100%; justify-content: center; margin-top: 10px;">
+            <i data-lucide="search"></i> Locate Nearest Booth
+          </button>
+
+          <div id="booth-results" class="hidden mt-3" style="background: rgba(19, 136, 8, 0.1); border: 1px solid var(--accent-green); padding: 15px; border-radius: 12px;">
+            <h4 style="color: var(--accent-green); display: flex; align-items: center; gap: 8px;"><i data-lucide="check-circle" style="width: 16px;"></i> Booth Found</h4>
+            <p style="margin-top: 10px;"><strong>Booth No. 42</strong> - St. Xavier's High School, Main Hall</p>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px;">
+              <div style="text-align: center;">
+                <i data-lucide="footprints" color="var(--text-muted)"></i>
+                <p id="booth-dist" style="font-weight: bold;">--</p>
+                <p class="text-muted" style="font-size: 0.8rem;">Distance</p>
+              </div>
+              <div style="text-align: center;">
+                <i data-lucide="clock" color="var(--text-muted)"></i>
+                <p id="booth-time" style="font-weight: bold;">--</p>
+                <p class="text-muted" style="font-size: 0.8rem;">Time</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="booth-map" style="flex: 2; min-width: 300px; height: 350px; background: #e5e3df; border-radius: 12px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+          <div id="map" style="width: 100%; height: 100%;"></div>
+        </div>
+
       </div>
     </section>
 
@@ -355,6 +443,16 @@
 
     <!-- Myth vs Fact Section -->
     <section id="view-myths" class="view-section padded-section hidden">
+      <div class="fact-checker glass-panel" style="margin-bottom: 30px; text-align: center;">
+        <h2 style="color:var(--accent-cyan); margin-bottom: 5px;">Instant Fact Checker</h2>
+        <p class="text-muted" style="margin-bottom: 15px;">Heard a rumor about the elections? Verify it instantly.</p>
+        <div style="display: flex; gap: 10px; justify-content: center; max-width: 600px; margin-inline: auto;">
+          <input type="text" id="fact-input" class="form-input" placeholder="e.g. EVMs can be hacked via Bluetooth..." style="flex: 1; border-radius: 25px; padding: 12px 20px;">
+          <button class="btn" onclick="checkFact()" style="border-radius: 25px; padding: 10px 25px;"><i data-lucide="shield-check" style="width: 18px; height: 18px;"></i> Verify</button>
+        </div>
+        <div id="fact-result" class="hidden" style="margin-top: 20px; padding: 15px; border-radius: 8px; text-align: left; font-size: 0.95rem; line-height: 1.5; border: 1px solid var(--glass-border); transition: var(--transition);"></div>
+      </div>
+
       <h2 style="color:var(--accent-saffron); text-align:center; margin-bottom: 30px;">Myth vs Fact Mode</h2>
       <div class="myths-grid" id="myths-grid">
         <!-- Injected via JS -->
@@ -383,7 +481,7 @@
       <button class="btn-icon" onclick="toggleChat()" style="margin-left:auto"><i data-lucide="x" style="width:16px;"></i></button>
     </div>
     <div id="chat-messages" class="chat-messages">
-      <div class="chat-bubble ai-bubble">Hello! I am your Electoral Guide. Let's make democracy easy. First, tell me: which voter profile are you? (e.g., First-time, Migrant, Senior Citizen)</div>
+      <div class="chat-bubble ai-bubble" id="initial-ai-msg">Hello! I am your Electoral Guide. Let's make democracy easy. First, tell me: which voter profile are you? (e.g., First-time, Migrant, Senior Citizen)</div>
     </div>
     <div class="chat-input-area">
       <input type="text" id="chat-input" placeholder="Ask about elections..." onkeydown="if(event.key === 'Enter') sendChatMessage()"/>
@@ -391,6 +489,22 @@
     </div>
   </div>
 
+  <!-- Core Scripts -->
+  <script src="logic.js"></script>
+  <script src="tests.js"></script>
   <script src="script.js"></script>
+  
+  <div id="google_translate_element" style="display:none;"></div>
+  <!-- Google Translate Initialization -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en', 
+        includedLanguages: 'en,hi,bn,te,mr,ta,ur,gu,kn,or,ml,pa,as,mai,sat,ks,ne,sd,kok,doi,mni,brx,sa',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
